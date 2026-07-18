@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mini App Store</title>
+  <style>
+    :root {
+      --bg: #f8f9fa;
+      --text: #222;
+      --card: white;
+    }
+    body.dark {
+      --bg: #121212;
+      --text: #eee;
+      --card: #1e1e1e;
+    }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      transition: 0.3s;
+    }
+    header {
+      background: #007aff;
+      color: white;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .tabs {
+      display: flex;
+      background: var(--card);
+      border-bottom: 1px solid #ddd;
+      overflow-x: auto;
+    }
+    .tab {
+      padding: 14px 20px;
+      white-space: nowrap;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+    }
+    .tab.active {
+      border-bottom: 3px solid #007aff;
+      color: #007aff;
+      font-weight: bold;
+    }
+    .apps {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap: 20px;
+      padding: 20px;
+    }
+    .app-card {
+      background: var(--card);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      transition: all 0.2s;
+    }
+    .app-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    }
+    .app-icon {
+      width: 100%;
+      height: 160px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 60px;
+    }
+    .info {
+      padding: 12px;
+    }
+    .info h3 {
+      margin: 0 0 4px 0;
+      font-size: 16px;
+    }
+    .rating {
+      color: #ffcc00;
+      font-size: 14px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #007aff;
+      color: white;
+      border: none;
+      border-radius: 999px;
+      font-weight: bold;
+      margin-top: 8px;
+      cursor: pointer;
+    }
+    .modal {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+    }
+    .modal-content {
+      background: var(--card);
+      width: 90%;
+      max-width: 420px;
+      border-radius: 20px;
+      overflow: hidden;
+    }
+    .close {
+      float: right;
+      font-size: 28px;
+      padding: 10px 15px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>App Store</h1>
+    <button onclick="toggleDarkMode()">🌙</button>
+  </header>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab(0)">Today</div>
+    <div class="tab" onclick="switchTab(1)">Games</div>
+    <div class="tab" onclick="switchTab(2)">Apps</div>
+  </div>
+
+  <div class="apps" id="appList"></div>
+
+  <!-- Modal -->
+  <div class="modal" id="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">×</span>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <script>
+    let installed = new Set();
+
+    const allApps = [
+      { id:1, name:"ChatGPT", icon:"🤖", category:"AI", rating:4.9, downloads:"12M", desc:"The smartest AI assistant in your pocket." },
+      { id:2, name:"Duolingo", icon:"🦉", category:"Education", rating:4.8, downloads:"45M", desc:"Learn languages with fun lessons." },
+      { id:3, name:"Spotify", icon:"🎵", category:"Music", rating:4.7, downloads:"98M", desc:"Millions of songs and podcasts." },
+      { id:4, name:"Minecraft", icon:"⛏️", category:"Games", rating:4.6, downloads:"25M", desc:"Build anything you can imagine!" },
+      { id:5, name:"Notion", icon:"📝", category:"Productivity", rating:4.8, downloads:"8M", desc:"All-in-one workspace." },
+      { id:6, name:"Instagram", icon:"📸", category:"Social", rating:4.5, downloads:"120M", desc:"Share moments with friends." },
+      { id:7, name:"Zoom", icon:"📹", category:"Communication", rating:4.4, downloads:"67M", desc:"Video meetings anywhere." },
+      { id:8, name:"Genshin Impact", icon:"⚔️", category:"Games", rating:4.7, downloads:"35M", desc:"Open-world action RPG." }
+    ];
+
+    function renderApps(apps) {
+      const container = document.getElementById('appList');
+      container.innerHTML = '';
+      apps.forEach(app => {
+        const isInstalled = installed.has(app.id);
+        const card = document.createElement('div');
+        card.className = 'app-card';
+        card.innerHTML = `
+          <div class="app-icon">${app.icon}</div>
+          <div class="info">
+            <h3>${app.name}</h3>
+            <div class="rating">★ ${app.rating} • ${app.downloads}</div>
+            <button onclick="showDetail(${app.id}); event.stopImmediatePropagation();">
+              ${isInstalled ? 'Open' : 'Get'}
+            </button>
+          </div>
+        `;
+        card.onclick = () => showDetail(app.id);
+        container.appendChild(card);
+      });
+    }
+
+    function showDetail(id) {
+      const app = allApps.find(a => a.id === id);
+      if (!app) return;
+
+      const isInstalled = installed.has(app.id);
+      document.getElementById('modalBody').innerHTML = `
+        <div style="padding:20px; text-align:center;">
+          <div style="font-size:90px; margin:20px 0;">${app.icon}</div>
+          <h2>${app.name}</h2>
+          <p>${app.category} • ${app.rating} ★</p>
+          <p style="margin:15px 0; font-size:15px;">${app.desc}</p>
+          <button onclick="toggleInstall(${app.id})" style="width:100%; padding:14px; font-size:18px;">
+            ${isInstalled ? '✅ Installed - Open' : 'Get'}
+          </button>
+        </div>
+      `;
+      document.getElementById('modal').style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('modal').style.display = 'none';
+    }
+
+    function toggleInstall(id) {
+      if (installed.has(id)) {
+        alert(`Opening ${allApps.find(a=>a.id===id).name}...`);
+      } else {
+        installed.add(id);
+        alert('✅ App installed!');
+        closeModal();
+        renderApps(allApps); // refresh
+      }
+    }
+
+    function switchTab(tab) {
+      document.querySelectorAll('.tab').forEach((t,i) => {
+        t.classList.toggle('active', i === tab);
+      });
+
+      let filtered = allApps;
+      if (tab === 1) filtered = allApps.filter(a => a.category === "Games");
+      if (tab === 2) filtered = allApps.filter(a => a.category !== "Games");
+
+      renderApps(filtered);
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark');
+    }
+
+    // Initial load
+    renderApps(allApps);
+  </script>
+</body>
+</html>
