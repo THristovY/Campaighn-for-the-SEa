@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Mini App Store</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f4f4f4;
+    }
+    header {
+      background: #007bff;
+      color: white;
+      padding: 15px;
+      text-align: center;
+    }
+    .search-bar {
+      width: 80%;
+      max-width: 600px;
+      padding: 10px;
+      margin: 15px auto;
+      display: block;
+      border-radius: 25px;
+      border: 1px solid #ccc;
+    }
+    .apps {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 20px;
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .app-card {
+      background: white;
+      border-radius: 12px;
+      padding: 15px;
+      text-align: center;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      transition: transform 0.2s;
+    }
+    .app-card:hover {
+      transform: scale(1.05);
+    }
+    .app-icon {
+      width: 80px;
+      height: 80px;
+      background: #ddd;
+      border-radius: 20px;
+      margin: 0 auto 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🚀 Mini App Store</h1>
+  </header>
+
+  <input type="text" class="search-bar" id="search" placeholder="Search apps..." onkeyup="filterApps()">
+
+  <div class="apps" id="appList">
+    <!-- Apps will be added by JavaScript -->
+  </div>
+
+  <script>
+    const apps = [
+      { name: "ChatGPT", icon: "🤖", category: "Productivity" },
+      { name: "TikTok", icon: "🎵", category: "Social" },
+      { name: "Duolingo", icon: "🦉", category: "Education" },
+      { name: "Instagram", icon: "📷", category: "Social" },
+      { name: "Notion", icon: "📝", category: "Productivity" },
+      { name: "Spotify", icon: "🎧", category: "Music" },
+      { name: "Zoom", icon: "📹", category: "Communication" },
+      { name: "Minecraft", icon: "⛏️", category: "Games" }
+    ];
+
+    function renderApps(filteredApps) {
+      const container = document.getElementById('appList');
+      container.innerHTML = '';
+
+      filteredApps.forEach(app => {
+        const card = document.createElement('div');
+        card.className = 'app-card';
+        card.innerHTML = `
+          <div class="app-icon">${app.icon}</div>
+          <h3>${app.name}</h3>
+          <p>${app.category}</p>
+          <button onclick="install('${app.name}')">Get</button>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function filterApps() {
+      const term = document.getElementById('search').value.toLowerCase();
+      const filtered = apps.filter(app => 
+        app.name.toLowerCase().includes(term) || 
+        app.category.toLowerCase().includes(term)
+      );
+      renderApps(filtered);
+    }
+
+    function install(name) {
+      alert(`✅ Installing ${name}... (Demo mode)`);
+    }
+
+    // Initial render
+    renderApps(apps);
+  </script>
+
+</body>
+</html>
